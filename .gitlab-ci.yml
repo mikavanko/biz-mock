@@ -1,0 +1,185 @@
+image: docker
+
+variables:
+  DOCKER_IMAGE_NAME: biz-ui
+  #DOCKER_REGISTRY_SERVER
+  #DOCKER_REGISTRY_LOGIN
+  #DOCKER_REGISTRY_PASSWORD
+  #CI_COMMIT_BRANCH
+  #UPSTREAM_SERVER_HOST
+  #SERVER_LOCATION_PROXY_PASS_HOST
+  
+
+
+services:
+  - docker:stable-dind
+
+stages:
+  - publish
+  - deploy_to_dev
+  - deploy_to_test
+  - deploy_to_stage
+  - deploy_to_prod
+
+
+publish_docker_image:
+  stage: publish
+  image: docker:stable
+
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+
+  services:
+    - name: docker:stable-dind
+
+  before_script:
+    - docker info
+
+  script:
+    - echo ${DOCKER_REGISTRY_SERVER}
+    - echo ${DOCKER_IMAGE_NAME}
+    - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+    - echo ${DOCKER_IMAGE_TAG}
+    - docker login -u ${DOCKER_REGISTRY_LOGIN} -p ${DOCKER_REGISTRY_PASSWORD} ${DOCKER_REGISTRY_SERVER}
+    - docker build -t ${DOCKER_REGISTRY_SERVER}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --build-arg UPSTREAM_SERVER_HOST=${UPSTREAM_SERVER_HOST} --build-arg SERVER_LOCATION_PROXY_PASS_HOST=${SERVER_LOCATION_PROXY_PASS_HOST} -f Dockerfile .
+    - docker push ${DOCKER_REGISTRY_SERVER}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+    - ls -lah
+    - cp -r helm public/
+    - ls public/
+    - sed -i -e "s/application_name/${DOCKER_IMAGE_NAME}/g" public/Chart.yaml
+    - sed -i -e "s/application_version/${DOCKER_IMAGE_TAG}/g" public/Chart.yaml
+
+  artifacts:
+    name: biz-ui
+    paths:
+      - public/
+
+
+deploy_to_DEV:
+  image: dtzar/helm-kubectl:3.2.4
+  variables:
+    KUBECONFIG: /etc/deploy/config
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    - ls -lah
+  stage: deploy_to_dev
+  script:
+    - echo "Deploy"
+    - DEPLOY_ENV=dev
+    - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+    - HOST="${DOCKER_IMAGE_NAME}-${DEPLOY_ENV}.eatmarket.ru"
+    - SERVICE_VERSION="${CI_COMMIT_BRANCH};DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+    - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+    - echo "HOST = ${HOST}"
+    - echo "SERVICE_VERSION = ${SERVICE_VERSION}"
+    - kubectl -n ${DEPLOY_ENV} get pods
+    - helm -n ${DEPLOY_ENV} upgrade --install ${DOCKER_IMAGE_NAME} public --set ingress.hosts[0].host="${HOST}",ingress.hosts[0].paths={"/"},ingress.tls[0].hosts={"${HOST}"},env.SERVICE_VERSION="branch-${CI_COMMIT_BRANCH};version=${DOCKER_IMAGE_TAG}"
+  environment:
+    name: ${DEPLOY_ENV}
+    url: ${HOST}
+
+deploy_to_abalakin:
+    image: dtzar/helm-kubectl:3.2.4
+    variables:
+        KUBECONFIG: /etc/deploy/config
+    before_script:
+        - mkdir -p /etc/deploy
+        - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    stage: deploy_to_dev
+    script:
+        - echo "Deploy"
+        - DEPLOY_ENV=abalakin
+        - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+        - HOST="${DOCKER_IMAGE_NAME}-${DEPLOY_ENV}.eatmarket.ru"
+        - SERVICE_VERSION="${CI_COMMIT_BRANCH};DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+        - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+        - echo "HOST = ${HOST}"
+        - echo "SERVICE_VERSION = ${SERVICE_VERSION}"
+        - kubectl -n ${DEPLOY_ENV} get pods
+        - helm -n ${DEPLOY_ENV} upgrade --install ${DOCKER_IMAGE_NAME} public --set ingress.hosts[0].host="${HOST}",ingress.hosts[0].paths={"/"},ingress.tls[0].hosts={"${HOST}"},ingress.enabled="true",env.SERVICE_VERSION="branch-${CI_COMMIT_BRANCH};version=${DOCKER_IMAGE_TAG}"
+    environment:
+        name: ${DEPLOY_ENV}
+        url: ${HOST}
+    when: manual
+
+
+deploy_to_TEST:
+  image: dtzar/helm-kubectl:3.2.4
+  variables:
+    KUBECONFIG: /etc/deploy/config
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    - ls -lah
+  stage: deploy_to_test
+  script:
+    - echo "Deploy"
+    - DEPLOY_ENV=test
+    - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+    - HOST="${DOCKER_IMAGE_NAME}-${DEPLOY_ENV}.eatmarket.ru"
+    - SERVICE_VERSION="${CI_COMMIT_BRANCH};DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+    - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+    - echo "HOST = ${HOST}"
+    - echo "SERVICE_VERSION = ${SERVICE_VERSION}"
+    - kubectl get pods -A
+    - helm -n ${DEPLOY_ENV} upgrade --install ${DOCKER_IMAGE_NAME} public --set ingress.hosts[0].host="${HOST}",ingress.hosts[0].paths={"/"},ingress.tls[0].hosts={"${HOST}"},env.SERVICE_VERSION="branch-${CI_COMMIT_BRANCH};version=${DOCKER_IMAGE_TAG}"
+  environment:
+    name: ${DEPLOY_ENV}
+    url: ${HOST}
+  when: manual
+
+
+deploy_to_STAGE:
+  image: dtzar/helm-kubectl:3.2.4
+  variables:
+    KUBECONFIG: /etc/deploy/config
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    - ls -lah
+  stage: deploy_to_stage
+  script:
+    - echo "Deploy"
+    - DEPLOY_ENV=stage
+    - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+    - HOST="${DOCKER_IMAGE_NAME}-${DEPLOY_ENV}.eatmarket.ru"
+    - SERVICE_VERSION="${CI_COMMIT_BRANCH};DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+    - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+    - echo "HOST = ${HOST}"
+    - echo "SERVICE_VERSION = ${SERVICE_VERSION}"
+    - kubectl -n ${DEPLOY_ENV} get pods
+    - helm -n ${DEPLOY_ENV} upgrade --install ${DOCKER_IMAGE_NAME} public --set ingress.hosts[0].host="${HOST}",ingress.hosts[0].paths={"/"},ingress.tls[0].hosts={"${HOST}"},env.SERVICE_VERSION="branch-${CI_COMMIT_BRANCH};version=${DOCKER_IMAGE_TAG}"
+  environment:
+    name: ${DEPLOY_ENV}
+    url: ${HOST}
+  only:
+    - master
+
+deploy_to_PROD:
+  image: dtzar/helm-kubectl:3.2.4
+  variables:
+    KUBECONFIG: /etc/deploy/config
+  before_script:
+    - mkdir -p /etc/deploy
+    - echo ${KUBE_CONFIG_PROD} | base64 -d > ${KUBECONFIG}
+    - ls -lah
+  stage: deploy_to_prod
+  script:
+    - echo "Deploy"
+    - DEPLOY_ENV=prod
+    - DOCKER_IMAGE_TAG=`date +%Y.%m.%d.%H%M`
+    - HOST="${DOCKER_IMAGE_NAME}.eatmarket.ru"
+    - SERVICE_VERSION="${CI_COMMIT_BRANCH};DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+    - echo "CI_COMMIT_BRANCH = ${CI_COMMIT_BRANCH}"
+    - echo "HOST = ${HOST}"
+    - echo "SERVICE_VERSION = ${SERVICE_VERSION}"
+    - kubectl -n ${DEPLOY_ENV} get pods
+    - helm -n ${DEPLOY_ENV} upgrade --install ${DOCKER_IMAGE_NAME} public --set ingress.hosts[0].host="${HOST}",ingress.hosts[0].paths={"/"},ingress.tls[0].hosts={"${HOST}"},env.SERVICE_VERSION="branch-${CI_COMMIT_BRANCH};version=${DOCKER_IMAGE_TAG}"
+  environment:
+    name: ${DEPLOY_ENV}
+    url: ${HOST}
+  when: manual
+  only:
+    - master
+
