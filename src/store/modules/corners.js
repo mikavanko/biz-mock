@@ -7,7 +7,7 @@ export default {
         corners: [],
         cornerById: null,
         cornerStatuses: [],
-        cornersImages: []
+        cornersImages: [],
     },
     mutations:{
         SET_CORNERS: (state, payload) => {
@@ -32,7 +32,9 @@ export default {
         CREATE_CORNER: service.createCorner,
         SET_CORNERS_BY_ID: ({commit},payload)=>{
             commit('SET_CORNERS_BY_ID',lowerCasedObjKeys.lcObjKeys(payload))
-        }
+        },
+        REMOVE_CORNER_IMAGE: service.removeCornerImage,
+        ADD_CORNER_IMAGE: service.addCornerImage,
     },
     getters: {
         CORNERS: state => {

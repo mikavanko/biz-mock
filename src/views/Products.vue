@@ -6,7 +6,10 @@
 
         <b-row>
           <b-col md="6">
-            <b-form-input v-model="productSearch" placeholder="Поиск" class="mb-3"></b-form-input>
+            <b-form-input v-model="productSearchName" placeholder="Название" class="mb-3"></b-form-input>
+          </b-col>
+          <b-col md="6">
+            <b-form-input v-model="productSearchArticle" placeholder="Артикул" class="mb-3"></b-form-input>
           </b-col>
         </b-row>
 
@@ -19,7 +22,7 @@
             thead-class="bg-light"
             small
             hover
-            :items="filterProducts"
+            :items="productsPrep"
             :fields="tableFields"
             :current-page="curPage"
             :per-page="0"
@@ -67,13 +70,15 @@
 <script>
 import ProductsService from "@/services/productsService";
 const service = new ProductsService()
+import _ from 'lodash'
 
 export default {
   name: 'Products',
   data(){
     return {
       isLoading: true,
-      productSearch: '',
+      productSearchName: '',
+      productSearchArticle: '',
       products: [],
       textDanger: '',
       isModalShown: false,
@@ -133,25 +138,9 @@ export default {
         }
       })
     },
-    filterProducts(){
-      if(this.productSearch.length){
-        return this.productsPrep.filter(cur => {
-          let find = Object.values(cur).filter(el => {
-            if(typeof el === 'string' && el.toLowerCase().indexOf(this.productSearch.toLowerCase()) !== -1){
-              return el
-            }
-          })
-          if(find.length){
-            return cur
-          }
-        })
-      }else{
-        return this.productsPrep
-      }
-    }
   },
   watch:{
-    filterProducts:{
+    productsPrep:{
       handler(val){
         if(!val.length){
           this.textDanger = 'Ни одного продукта не найдено'
@@ -159,9 +148,54 @@ export default {
           this.textDanger = ''
         }
       }
+    },
+    productSearchName: {
+      handler(val){
+        this.curPage = 1
+        this.selectedStatus = 'all'
+
+        if(val.length || this.productSearchArticle.length) {
+          this.debouncer()
+        }else{
+          this.getProducts(1, 'all')
+        }
+      }
+    },
+    productSearchArticle: {
+      handler(val){
+        this.curPage = 1
+        this.selectedStatus = 'all'
+        
+        if(val.length || this.productSearchName.length) {
+          this.debouncer()
+        }else{
+          this.getProducts(1, 'all')
+        }
+      }
     }
   },
   methods:{
+    debouncer: _.debounce(function (){this.getProductByFilter()}, 500),
+    async getProductByFilter(){
+      console.log('getProductByFilter')
+      this.isLoading = true
+
+      const name = this.productSearchName
+      const article = this.productSearchArticle
+
+      const data = await service.getProductByFilter({name,article})
+      if(data !== 'loading') {
+        this.isLoading = false
+
+        if (data.error) {
+          this.textDanger = data.error
+        } else {
+          this.products = data.items
+          this.totalItems = data.paginationInfo.count
+          this.totalPages = data.paginationInfo.pages
+        }
+      }
+    },
     goToPage(e){
       e.preventDefault()
       const intVal = parseInt(this.goToPageNum)
@@ -173,24 +207,27 @@ export default {
           this.goToPageNum = ''
         }
       }
-
     },
     async getProducts(curPage, curStatus){
-      console.log(this.selectedStatus)
+      this.isLoading = true
+
       let data
       if(curStatus === 'all'){
         data = await service.getProducts({pageIdx: curPage-1, perPage: this.perPage})
       }else{
         data = await service.getProductsByStatus({pageIdx: curPage-1, perPage: this.perPage, curStatus: curStatus})
       }
-      this.isLoading = false
 
-      if(data.error){
-        this.textDanger = data.error
-      }else{
-        this.products = data.items
-        this.totalItems = data.paginationInfo.count
-        this.totalPages = data.paginationInfo.pages
+      if(data !== 'loading') {
+        this.isLoading = false
+
+        if (data.error) {
+          this.textDanger = data.error
+        } else {
+          this.products = data.items
+          this.totalItems = data.paginationInfo.count
+          this.totalPages = data.paginationInfo.pages
+        }
       }
     },
     async getCorners(){
@@ -204,9 +241,7 @@ export default {
     }
   },
   async mounted() {
-    // this.getProducts(this.curPage)
     this.getCorners()
-
 
     this.$watch(vm => [vm.curPage, vm.selectedStatus], (val,oldVal) => {
       const curPage = val[0],
@@ -218,15 +253,11 @@ export default {
         this.curPage = 1
 
         if(curPage === prevPage){
-          this.isLoading = true
           this.getProducts(curPage, curStatus)
         }
       }else{
-        this.isLoading = true
         this.getProducts(curPage, curStatus)
       }
-
-      // this.getProducts(curPage, curStatus)
 
     }, {
       immediate: true

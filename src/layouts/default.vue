@@ -8,8 +8,9 @@
 
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav class="ml-auto">
+            <b-nav-item class="nav-link" to="/invite">Пригласить</b-nav-item>
             <b-nav-item class="nav-link" to="/profile">Дмитрий</b-nav-item>
-            <b-nav-item class="nav-link" to="/signout">Выйти</b-nav-item>
+            <b-nav-item class="nav-link" @click="logout">Выйти</b-nav-item>
           </b-navbar-nav>
         </b-collapse>
       </div>
@@ -30,6 +31,16 @@ export default {
     Breadcrumbs
   },
   mounted(){
+  },
+
+  methods:{
+    logout(){
+      this.$store.dispatch('logout')
+      .then((resp)=>{
+        console.log('logout',resp)
+        this.$router.push('/auth')
+      })
+    }
   }
 }
 </script>

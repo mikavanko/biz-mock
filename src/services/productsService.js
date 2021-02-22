@@ -1,15 +1,52 @@
 import axios from "axios";
 
+const CancelToken = axios.CancelToken;
+
+let cancel;
+
 export default class ProductsService{
     async getProducts({pageIdx,perPage}) {
-        return await axios({
-            url: `/api/v1/Products?paginateIndex=${pageIdx}&paginateSize=${perPage}`,
-            method: 'get'
+        // Cancel previous request
+        if (cancel !== undefined) {
+            cancel();
+        }
+        return await axios.get(`/api/v1/Products?paginateIndex=${pageIdx}&paginateSize=${perPage}`,{
+                cancelToken: new CancelToken(function executor(c) {
+                    cancel = c;
+                })
+            })
+            .then(resp => resp.data)
+            .catch((error) => {
+                if (axios.isCancel(error)) {
+                    return 'loading'
+                }else{
+                    return {
+                        error: error
+                    }
+                }
+            });
+    }
+    async getProductByFilter({name,article}) {
+        // Cancel previous request
+        if (cancel !== undefined) {
+            cancel();
+        }
+        return await axios.post(`/api/v1/Products/by_filter`,{
+            ...(name && {name}),
+            ...(article && {article})
+        },{
+            cancelToken: new CancelToken(function executor(c) {
+                cancel = c;
+            })
         })
             .then(resp => resp.data)
             .catch((error) => {
-                return {
-                    error: error
+                if (axios.isCancel(error)) {
+                    return 'loading'
+                }else{
+                    return {
+                        error: error
+                    }
                 }
             });
     }
@@ -23,14 +60,23 @@ export default class ProductsService{
             });
     }
     async getProductsByStatus({pageIdx,perPage,curStatus}) {
-        return await axios({
-            url: `/api/v1/Products/by_status?status=${curStatus}&paginateIndex=${pageIdx}&paginateSize=${perPage}`,
-            method: 'get'
-        })
+        // Cancel previous request
+        if (cancel !== undefined) {
+            cancel();
+        }
+        return await axios.get(`/api/v1/Products/by_status?status=${curStatus}&paginateIndex=${pageIdx}&paginateSize=${perPage}`,{
+                cancelToken: new CancelToken(function executor(c) {
+                    cancel = c;
+                })
+            })
             .then(resp => resp.data)
             .catch((error) => {
-                return {
-                    error: error
+                if (axios.isCancel(error)) {
+                    return 'loading'
+                }else{
+                    return {
+                        error: error
+                    }
                 }
             });
     }
@@ -233,6 +279,24 @@ export default class ProductsService{
     }
     async removeImage(id,imgIdToDelete){
         return await axios.delete(`/api/v1/Products/${id}/images/${imgIdToDelete}`)
+            .then(resp => resp.data)
+            .catch((error) => {
+                return {
+                    error: error
+                }
+            })
+    }
+    async launchMenuLoad({menuLoad}){
+        return await axios.post(`/api/v1/FoodhallCashbox/launchMenuLoad`,menuLoad)
+            .then(resp => resp.data)
+            .catch((error) => {
+                return {
+                    error: error
+                }
+            })
+    }
+    async getCashboxIdByFoodHallId({id}){
+        return await axios.get(`/api/v1/FoodhallCashbox/${id}`)
             .then(resp => resp.data)
             .catch((error) => {
                 return {

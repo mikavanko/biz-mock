@@ -17,7 +17,6 @@ export default {
   },
   computed:{
     breadcrumbsItems(){
-      console.log(this.$route)
       return this.$route.meta.breadcrumb.map((item,idx,arr)=>{
         let route = {}
 
@@ -26,7 +25,6 @@ export default {
           route.to = {name: item.name}
         }else{
           if(this.$route.name === 'edit' || this.$route.name === 'editCorners'){
-            console.log(this.$store)
             if(this.$store.getters.FOODHALL_BY_ID !== null){
               route.text = this.$store.getters.FOODHALL_BY_ID.name
             }else if(this.$store.getters.CORNER_BY_ID !== null){

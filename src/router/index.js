@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import {store} from '@/store'
 
 import Home from '@/views/Home'
 import Playgrounds from '@/views/Playgrounds'
@@ -17,9 +18,12 @@ import EditCategories from "@/views/EditCategories"
 
 import Delivery from "@/views/Delivery"
 
+import Auth from "@/views/Auth"
+import Invite from "@/views/Invite"
+
 Vue.use(Router)
 
-export default new Router({
+let router = new Router({
     mode: 'history',
     base: process.env.BASE_URL,
     routes: [
@@ -28,6 +32,7 @@ export default new Router({
             name: 'Home',
             component: Home,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -37,10 +42,37 @@ export default new Router({
             },
         },
         {
+            path: '/auth',
+            name: 'Auth',
+            component: Auth,
+            meta: {
+                layout: 'auth',
+            },
+        },
+        {
+            path: '/invite',
+            name: 'Invite',
+            component: Invite,
+            meta: {
+                requiresAuth: true,
+                layout: 'default',
+                breadcrumb: [
+                    {
+                        text: 'Главная',
+                        name: 'Home'
+                    },
+                    {
+                        text: 'Пригласить',
+                    },
+                ]
+            },
+        },
+        {
             path: '/playgrounds',
             name: 'Playgrounds',
             component: Playgrounds,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -58,6 +90,7 @@ export default new Router({
             name: 'FoodHall',
             component: FoodHall,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -79,6 +112,7 @@ export default new Router({
             name: 'Corners',
             component: Corners,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -100,6 +134,7 @@ export default new Router({
             name: 'createFoodHall',
             component: Edit,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -125,6 +160,7 @@ export default new Router({
             name: 'edit',
             component: Edit,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -150,6 +186,7 @@ export default new Router({
             name: 'createCorner',
             component: EditCorners,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -175,6 +212,7 @@ export default new Router({
             name: 'editCorners',
             component: EditCorners,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -200,6 +238,7 @@ export default new Router({
             name: 'Collections',
             component: Collections,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -221,6 +260,7 @@ export default new Router({
             name: 'createCollection',
             component: EditCollections,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -246,6 +286,7 @@ export default new Router({
             name: 'editCollections',
             component: EditCollections,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -271,6 +312,7 @@ export default new Router({
             name: 'Products',
             component: Products,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -292,6 +334,7 @@ export default new Router({
             name: 'createProduct',
             component: EditProducts,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -317,6 +360,7 @@ export default new Router({
             name: 'editProducts',
             component: EditProducts,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -342,6 +386,7 @@ export default new Router({
             name: 'Delivery',
             component: Delivery,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -363,6 +408,7 @@ export default new Router({
             name: 'Categories',
             component: Categories,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -384,6 +430,7 @@ export default new Router({
             name: 'createCategories',
             component: EditCategories,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -409,6 +456,7 @@ export default new Router({
             name: 'editCategories',
             component: EditCategories,
             meta: {
+                requiresAuth: true,
                 layout: 'default',
                 breadcrumb: [
                     {
@@ -431,3 +479,15 @@ export default new Router({
         },
     ]
 })
+router.beforeEach((to, from, next) => {
+    if(to.matched.some(record => record.meta.requiresAuth)) {
+        if (store.getters.isLoggedIn) {
+            next()
+            return
+        }
+        next('/auth')
+    } else {
+        next()
+    }
+})
+export default router

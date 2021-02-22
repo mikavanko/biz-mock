@@ -11,136 +11,161 @@
               </div>
 
               <div class="edit" v-else>
-                <div class="edit-row">
+                <b-form @submit="submit">
+                  <div class="edit-row">
+                      <div class="edit-label">
+                          Статус
+                      </div>
+                      <div class="edit-input-wrapper">
+                          <div class="input-wrapper">
+                            <b-form-select required v-model="foodHallData.status" :state="foodHallDataValidation.status" :options="statusesSelect"></b-form-select>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="edit-row">
+                      <div class="edit-label">
+                          Название
+                      </div>
+                      <div class="edit-input-wrapper">
+                          <div class="input-wrapper">
+                            <b-form-input required v-model="foodHallData.name" :state="foodHallDataValidation.name" placeholder="Название"></b-form-input>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="edit-row">
+                      <div class="edit-label">
+                          Город
+                      </div>
+                      <div class="edit-input-wrapper">
+                          <div class="input-wrapper">
+                            <b-form-input required v-model="foodHallData.city" :state="foodHallDataValidation.city" placeholder="Город"></b-form-input>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="edit-row">
                     <div class="edit-label">
-                        Статус
+                      Адрес
                     </div>
                     <div class="edit-input-wrapper">
-                        <div class="input-wrapper">
-                          <b-form-select v-model="foodHallData.status" :state="foodHallDataValidation.status" :options="statusesSelect"></b-form-select>
-                        </div>
+                      <div class="input-wrapper">
+                        <b-form-input required v-model="foodHallData.address" :state="foodHallDataValidation.address" placeholder="Адрес"></b-form-input>
+                      </div>
                     </div>
-                </div>
-                <div class="edit-row">
+                  </div>
+                  <div class="edit-row">
                     <div class="edit-label">
-                        Название
+                      E-mail менеджера
                     </div>
                     <div class="edit-input-wrapper">
-                        <div class="input-wrapper">
-                          <b-form-input v-model="foodHallData.name" :state="foodHallDataValidation.name" placeholder="Название"></b-form-input>
-                        </div>
+                      <div class="input-wrapper">
+                        <b-form-input pattern="^[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}$" type="text" v-model="foodHallData.manageremail" :state="foodHallDataValidation.manageremail" placeholder="E-mail"></b-form-input>
+                      </div>
                     </div>
-                </div>
-                <div class="edit-row">
+                  </div>
+                  <div class="edit-row">
                     <div class="edit-label">
-                        Город
+                      К столу
                     </div>
                     <div class="edit-input-wrapper">
-                        <div class="input-wrapper">
-                          <b-form-input v-model="foodHallData.city" :state="foodHallDataValidation.city" placeholder="Город"></b-form-input>
-                        </div>
-                    </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Адрес
-                  </div>
-                  <div class="edit-input-wrapper">
-                    <div class="input-wrapper">
-                      <b-form-input v-model="foodHallData.address" :state="foodHallDataValidation.address" placeholder="Адрес"></b-form-input>
+                      <div class="input-wrapper">
+                        <b-form-input type="email" v-model="foodHallData.tableservingmanageremail" :state="foodHallDataValidation.tableservingmanageremail" placeholder="К столу"></b-form-input>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Описание
-                  </div>
-                  <div class="edit-input-wrapper">
-                    <div class="input-wrapper">
-                      <b-form-textarea v-model="foodHallData.description" :state="foodHallDataValidation.description" placeholder="Описание" rows="6"></b-form-textarea>
+                  <div class="edit-row">
+                    <div class="edit-label">
+                      Описание
+                    </div>
+                    <div class="edit-input-wrapper">
+                      <div class="input-wrapper">
+                        <b-form-textarea required v-model="foodHallData.description" :state="foodHallDataValidation.description" placeholder="Описание" rows="6"></b-form-textarea>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Время приема
-                  </div>
-                  <div class="edit-input-wrapper">
-                    <div class="input-wrapper">
-                      с <b-form-timepicker v-bind="timepickerLabels['ru']" v-model="foodHallData.workdaystart" :state="foodHallDataValidation.workdaystart" no-close-button size="sm" local="en" placeholder="Выберите время" class="ml-3 mr-3"></b-form-timepicker>
-                      до <b-form-timepicker v-bind="timepickerLabels['ru']" v-model="foodHallData.workdayend" :state="foodHallDataValidation.workdayend" no-close-button size="sm" local="en" placeholder="Выберите время" class="ml-3"></b-form-timepicker>
+                  <div class="edit-row">
+                    <div class="edit-label">
+                      Время приема
+                    </div>
+                    <div class="edit-input-wrapper">
+                      <div class="input-wrapper">
+                        с <b-form-timepicker v-bind="timepickerLabels['ru']" v-model="foodHallData.workdaystart" :state="foodHallDataValidation.workdaystart" no-close-button size="sm" local="en" placeholder="Выберите время" class="ml-3 mr-3"></b-form-timepicker>
+                        до <b-form-timepicker v-bind="timepickerLabels['ru']" v-model="foodHallData.workdayend" :state="foodHallDataValidation.workdayend" no-close-button size="sm" local="en" placeholder="Выберите время" class="ml-3"></b-form-timepicker>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Доставка
-                  </div>
-                  <div class="edit-input-wrapper">
-                    <div class="input-wrapper">
-                      <b-form-group class="mb-0">
-                        <b-form-radio-group
-                            v-model="foodHallData.deliveryenabled"
-                            :state="foodHallDataValidation.deliveryenabled"
-                        >
-                          <b-form-radio :value="true">Да</b-form-radio>
-                          <b-form-radio :value="false">Нет</b-form-radio>
-                        </b-form-radio-group>
-                      </b-form-group>
+                  <div class="edit-row">
+                    <div class="edit-label">
+                      Доставка
+                    </div>
+                    <div class="edit-input-wrapper">
+                      <div class="input-wrapper">
+                        <b-form-group class="mb-0">
+                          <b-form-radio-group
+                              v-model="foodHallData.deliveryenabled"
+                              :state="foodHallDataValidation.deliveryenabled"
+                          >
+                            <b-form-radio :value="true">Да</b-form-radio>
+                            <b-form-radio :value="false">Нет</b-form-radio>
+                          </b-form-radio-group>
+                        </b-form-group>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Самовывоз
-                  </div>
-                  <div class="edit-input-wrapper">
-                    <div class="input-wrapper">
-                      <b-form-group class="mb-0">
-                        <b-form-radio-group
-                            v-model="foodHallData.pickupenabled"
-                            :state="foodHallDataValidation.pickupenabled"
-                        >
-                          <b-form-radio :value="true">Да</b-form-radio>
-                          <b-form-radio :value="false">Нет</b-form-radio>
-                        </b-form-radio-group>
-                      </b-form-group>
+                  <div class="edit-row">
+                    <div class="edit-label">
+                      Самовывоз
+                    </div>
+                    <div class="edit-input-wrapper">
+                      <div class="input-wrapper">
+                        <b-form-group class="mb-0">
+                          <b-form-radio-group
+                              v-model="foodHallData.pickupenabled"
+                              :state="foodHallDataValidation.pickupenabled"
+                          >
+                            <b-form-radio :value="true">Да</b-form-radio>
+                            <b-form-radio :value="false">Нет</b-form-radio>
+                          </b-form-radio-group>
+                        </b-form-group>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="edit-row">
-                  <div class="edit-label">
-                    Зона доставки
+                  <div class="edit-row">
+                    <div class="edit-label">
+                      Зона доставки
+                    </div>
+                    <div class="edit-input-wrapper">
+                      <Map v-bind.sync="geometry" />
+                      <b-form-invalid-feedback  :state="foodHallDataValidation.point">
+                        Укажите координаты фуд-холла
+                      </b-form-invalid-feedback>
+                      <b-form-valid-feedback :state="foodHallDataValidation.point">
+                        Координаты фуд-холла успешно добавлены
+                      </b-form-valid-feedback>
+                      <b-form-invalid-feedback  :state="foodHallDataValidation.deliveryzone">
+                        Укажите зону доставки фуд-холла
+                      </b-form-invalid-feedback>
+                      <b-form-valid-feedback :state="foodHallDataValidation.deliveryzone">
+                        Зона доставки фуд-холла успешно добавлена
+                      </b-form-valid-feedback>
+                    </div>
                   </div>
-                  <div class="edit-input-wrapper">
-                    <Map v-bind.sync="geometry" />
-                    <b-form-invalid-feedback  :state="foodHallDataValidation.point">
-                      Укажите координаты фуд-холла
-                    </b-form-invalid-feedback>
-                    <b-form-valid-feedback :state="foodHallDataValidation.point">
-                      Координаты фуд-холла успешно добавлены
-                    </b-form-valid-feedback>
-                    <b-form-invalid-feedback  :state="foodHallDataValidation.deliveryzone">
-                      Укажите зону доставки фуд-холла
-                    </b-form-invalid-feedback>
-                    <b-form-valid-feedback :state="foodHallDataValidation.deliveryzone">
-                      Зона доставки фуд-холла успешно добавлена
-                    </b-form-valid-feedback>
+                  <div class="submit-row">
+                    <div class="text-right">
+                      <b-button type="submit">
+                        <b-spinner small type="grow" v-if="isLoadingBtn"></b-spinner>
+                        Сохранить
+                      </b-button>
+                    </div>
                   </div>
-                </div>
-                <div class="submit-row">
-                  <div class="text-right">
-                    <b-button @click="submit">
-                      <b-spinner small type="grow" v-if="isLoadingBtn"></b-spinner>
-                      Сохранить
-                    </b-button>
-                  </div>
-                </div>
-
+                </b-form>
               </div>
             </div>
-            <div class="col-lg-3">
-
+            <div class="col-lg-3" v-if="$route.params.id">
+              <p>ID кассы:
+                <span v-if="cashBoxId !== null">{{cashBoxId}}</span>
+                <span v-else>{{cashBoxText}}</span>
+              </p>
+              <b-button @click="launchMenuLoad($route.params.id)" :disabled="isLaunchMenuLoading || cashBoxId === null">Загрузить блюда</b-button>
             </div>
         </div>
 
@@ -151,6 +176,8 @@
 <script>
 import {mapGetters} from 'vuex';
 import Map from '@/components/Map';
+import productsService from "@/services/productsService";
+const service = new productsService
 
 export default {
   name: 'Edit',
@@ -159,6 +186,7 @@ export default {
       isLoading: this.$route.params.id ? true : false,
       isLoadingBtn: false,
       isModalShown: false,
+      isLaunchMenuLoading: false,
       modalText: '',
       geometry: {
         point: null,
@@ -188,6 +216,8 @@ export default {
         point: null,
         workdayend: null,
         workdaystart: null,
+        manageremail: null,
+        tableservingmanageremail: null,
       },
       foodHallDataValidation: {
         status: null,
@@ -202,6 +232,8 @@ export default {
         workdayend: null,
         workdaystart: null,
       },
+      cashBoxId: null,
+      cashBoxText: '',
     }
   },
   components: {
@@ -210,6 +242,8 @@ export default {
   mounted(){
     if(this.$route.params.id){
       this.$store.dispatch('GET_FOODHALLS_BY_ID', this.$route.params.id)
+
+      this.getCashboxIdByFoodHallId(this.$route.params.id)
     }
     this.$store.dispatch('GET_STATUSES')
   },
@@ -255,10 +289,47 @@ export default {
     }
   },
   methods:{
+    async getCashboxIdByFoodHallId(id){
+      const data = await service.getCashboxIdByFoodHallId({id})
+
+      if(data.error){
+        if(data.error.response.status === 404){
+          this.cashBoxText = 'Не найден'
+        }else{
+          this.cashBoxText = data.error
+        }
+      }else{
+        this.cashBoxId = data.cashboxId
+      }
+    },
+    async launchMenuLoad(id){
+      const menuLoad = {
+        "cashBoxId": this.cashBoxId,
+        "cashboxTypeId": "Iiko",
+        "foodhallId": parseInt(id)
+      }
+
+      this.isLaunchMenuLoading = true
+      const data = await service.launchMenuLoad({menuLoad})
+      this.isLaunchMenuLoading = false
+
+      this.isModalShown = true
+      if(data.error){
+        this.modalText = data.error
+      }else{
+        this.modalText = 'Загрузка меню запущена'
+      }
+
+      setTimeout(() => {
+        this.isModalShown = false
+        this.modalText = ''
+      }, 3000)
+    },
     validate(){
       let isValid = true
 
       for(let key in this.foodHallData){
+        if(this.foodHallDataValidation[key] === undefined) continue
         if(this.foodHallData[key] === null ||
             this.foodHallData[key] === ''
         ){
@@ -270,7 +341,9 @@ export default {
       }
       return isValid
     },
-    async submit(){
+    async submit(e){
+      e.preventDefault()
+      
       const isValid = this.validate()
 
       if(!isValid){

@@ -63,41 +63,102 @@
                 </div>
                 <div class="edit-row">
                   <div class="edit-label">
-                    Логотип
+                    Рейтинг
                   </div>
                   <div class="edit-input-wrapper">
-                    <div class="image-wrapper">
-                      <div class="image" @click="addNewLogo">
-                        <img ref="logoImg" :src="imgUrl" alt="logo" v-if="imgUrl">
-                        <b-icon font-scale="5" icon="image-alt" v-else></b-icon>
-                      </div>
-                      <div class="image-actions">
-                        <div class="image-action" @click="removeLogo">
-                          <b-icon font-scale="1" icon="x"></b-icon>
-                          Удалить логотип
-                        </div>
-                        <div class="image-action" @click="addNewLogo">
-                          <b-icon font-scale="1" icon="plus"></b-icon>
-                          Добавить новый логотип
-                        </div>
-                      </div>
-                      <!-- <b-form-invalid-feedback  :state="cornersDataValidation.point">
-                        Загрузите фото
-                      </b-form-invalid-feedback>
-                      <b-form-valid-feedback :state="cornersDataValidation.point">
-                        Фото загружено
-                      </b-form-valid-feedback> -->
+                    <div class="input-wrapper">
+                      <b-form-input type="number" v-model.number="cornersData.rate" :state="cornersDataValidation.rate" placeholder="Рейтинг"></b-form-input>
+                    </div>
+                  </div>
+                </div>
+                <div class="edit-row">
+                  <div class="edit-label">
+                    Кол-во отзывов
+                  </div>
+                  <div class="edit-input-wrapper">
+                    <div class="input-wrapper">
+                      <b-form-input type="number" v-model.number="cornersData.reviewcount" :state="cornersDataValidation.reviewcount" placeholder="Кол-во отзывов"></b-form-input>
+                    </div>
+                  </div>
+                </div>
+                <div class="edit-row">
+                  <div class="edit-label">
+                    Ср. чек
+                  </div>
+                  <div class="edit-input-wrapper">
+                    <div class="input-wrapper">
+                      <b-form-input type="number" v-model.number="cornersData.averagecheque" :state="cornersDataValidation.averagecheque" placeholder="Ср. чек"></b-form-input>
+                    </div>
+                  </div>
+                </div>
+                <b-row class="mb-3">
+                  <b-col>
+                    <div class="edit-label">
+                      Логотип
+                    </div>
+                  </b-col>
+                  <b-col>
+                    <div class="image-action text-right" @click="addNewLogo">
+                      <b-icon font-scale="1" icon="plus"></b-icon>
+                      Добавить новую картинку
+                      <b-spinner small type="grow" v-if="isLoadingLogo"></b-spinner>
                     </div>
                     <b-form-file
-                        v-model="file"
+                        v-model="fileLogo"
                         placeholder="Выберите логотип"
                         drop-placeholder="Перетащите логотип сюда..."
                         accept=".jpg, .png, .gif"
                         browse-text="Обзор"
-                        ref="formFile"
+                        ref="formFileLogo"
+                        class="invisible position-absolute"
                     ></b-form-file>
-                  </div>
-                </div>
+                  </b-col>
+                </b-row>
+                <b-row class="mb-3">
+                  <b-col class="pc-img-wrapper">
+                    <div class="pc-img" v-for="(item,idx) in cornerLogos" :key="idx">
+                      <img ref="logoImg" :src="item.url" alt="img">
+                      <b-button pill size="sm" variant="danger" class="pc-btn-close p-0 rounded-circle" @click="removeImg(item)">
+                        <b-spinner small type="grow" v-if="idxClicked === item.id"></b-spinner>
+                        <b-icon font-scale="1" icon="x" v-else></b-icon>
+                      </b-button>
+                    </div>
+                  </b-col>
+                </b-row>
+                <b-row class="mb-3">
+                  <b-col>
+                    <div class="edit-label">
+                      Фото
+                    </div>
+                  </b-col>
+                  <b-col>
+                    <div class="image-action text-right" @click="addNewPhoto">
+                      <b-icon font-scale="1" icon="plus"></b-icon>
+                      Добавить новую картинку
+                      <b-spinner small type="grow" v-if="isLoadingPhoto"></b-spinner>
+                    </div>
+                    <b-form-file
+                        v-model="filePhoto"
+                        placeholder="Выберите фото"
+                        drop-placeholder="Перетащите фото сюда..."
+                        accept=".jpg, .png, .gif"
+                        browse-text="Обзор"
+                        ref="formFilePhoto"
+                        class="invisible position-absolute"
+                    ></b-form-file>
+                  </b-col>
+                </b-row>
+                <b-row class="mb-3">
+                  <b-col class="pc-img-wrapper">
+                    <div class="pc-img" v-for="(item,idx) in cornerPhotos" :key="idx">
+                      <img ref="logoImg" :src="item.url" alt="img">
+                      <b-button pill size="sm" variant="danger" class="pc-btn-close p-0 rounded-circle" @click="removeImg(item)">
+                        <b-spinner small type="grow" v-if="idxClicked === item.id"></b-spinner>
+                        <b-icon font-scale="1" icon="x" v-else></b-icon>
+                      </b-button>
+                    </div>
+                  </b-col>
+                </b-row>
                 <div class="submit-row">
                   <div class="text-right">
                     <b-button @click="submit">
@@ -120,12 +181,15 @@
 
 <script>
 import {mapGetters} from 'vuex';
+// import CornerService from "@/services/cornerService";
+// const service = new CornerService()
 
 export default {
   name: 'Edit',
   data(){
     return {
-      file: null,
+      fileLogo: null,
+      filePhoto: null,
       imgUrl: null,
       imgIdToDelete: null,
       isLoading: this.$route.params.id ? true : false,
@@ -137,7 +201,10 @@ export default {
         description: null,
         foodhallid: null,
         name: null,
-        status: null
+        status: null,
+        rate: null,
+        reviewcount: null,
+        averagecheque: null
       },
       cornersDataValidation: {
         concept: null,
@@ -145,21 +212,33 @@ export default {
         foodhallid: null,
         name: null,
         status: null,
-      }
+        rate: null,
+        reviewcount: null,
+        averagecheque: null
+      },
+      idxClicked: null,
+      isLoadingLogo: false,
+      isLoadingPhoto: false,
     }
   },
   mounted(){
     if(this.$route.params.id){
       this.$store.dispatch('GET_CORNERS_BY_ID', this.$route.params.id)
+      this.getCornerImages()
     }
     this.$store.dispatch('GET_CORNERS_STATUSES')
     if(!this.$store.getters.FOODHALLS.length) {
       this.$store.dispatch('GET_FOODHALLS')
     }
-    this.$store.dispatch('GET_CORNERS_IMAGES', this.$route.params.id)
   },
   computed:{
     ...mapGetters(['CORNER_BY_ID','CORNER_STATUSES', 'FOODHALLS', 'CORNERS_IMAGES']),
+    cornerLogos(){
+      return this.CORNERS_IMAGES.filter((t)=>{return t.resourceType === 'Logo'})
+    },
+    cornerPhotos(){
+      return this.CORNERS_IMAGES.filter((t)=>{return t.resourceType === 'Photo'})
+    },
     statusesSelect(){
       const statusesText = ['Новый','Работает','Закрыт']
 
@@ -192,27 +271,76 @@ export default {
     }
   },
   watch: {
-    file(val){
-      this.imgUrl = val ? URL.createObjectURL(val) : null;
+    fileLogo(val){
+      this.uploadImage(val, 'Logo')
+    },
+    filePhoto(val){
+      this.uploadImage(val, 'Photo')
     },
     CORNER_BY_ID(newF){
       this.cornersData = this.CORNER_BY_ID
 
       this.isLoading = newF !== null ? false : this.isLoading
     },
-    async CORNERS_IMAGES(val){
-      if(val.length){
-        this.imgIdToDelete = val[0].id
-
-        let blob = await fetch(val[0].url).then(r => r.blob());
-        this.file = new File([blob], val[0].name)
-      }
-    }
   },
   methods:{
+    addNewLogo(){
+      this.$refs.formFileLogo.$refs.input.click()
+    },
+    addNewPhoto(){
+      this.$refs.formFilePhoto.$refs.input.click()
+    },
+    rmImgFromStateById(id){
+      const idx = this.images.findIndex(item=>item.id === id)
+      this.images.splice(idx, 1)
+    },
+    async removeImg(item){
+      this.idxClicked = item.id
+
+      const cornerId = this.cornersData.id
+      const imgIdToDelete = item.id
+      const data = await this.$store.dispatch('REMOVE_CORNER_IMAGE', {cornerId,imgIdToDelete})
+
+      this.idxClicked = null
+
+      this.isModalShown = true
+
+      if(data !== '' && data.error){
+        this.modalText = data.error
+      }else{
+        this.modalText = 'Изображение успешно удалено'
+      }
+    },
+    async uploadImage(file,type){
+      let formData = null
+
+      if(file){
+        formData = new FormData()
+        formData.append('ImageTypes', type)
+        formData.append('Files', file)
+
+        this[type === 'Logo' ? 'isLoadingLogo' : 'isLoadingPhoto'] = true
+
+        const cornerId = this.cornersData.id
+        const data = await this.$store.dispatch('ADD_CORNER_IMAGE', {cornerId, formData, file})
+
+        this[type === 'Logo' ? 'isLoadingLogo' : 'isLoadingPhoto'] = false
+
+
+        if (data.error) {
+          this.modalText = data.error
+        } else {
+          await this.getCornerImages()
+          this.isModalShown = true
+          this.modalText = 'Изображение успешно добавлено'
+
+        }
+      }
+    },
     validate(){
       let isValid = true
 
+      console.log('fuck')
       for(let key in this.cornersData){
         if(this.cornersData[key] === null ||
             this.cornersData[key] === ''
@@ -226,40 +354,26 @@ export default {
       return isValid
     },
     async submit(){
-      const isValid = this.validate()
+      // const isValid = this.validate()
 
-      if(!isValid){
-        this.isModalShown = true
-        this.modalText = 'Заполните все поля'
-      }else{
+      // if(!isValid){
+      //   this.isModalShown = true
+      //   this.modalText = 'Заполните все поля'
+      // }else{
         this.isLoadingBtn = true
 
-        let imgData = null
-        if(this.file){
-          imgData = new FormData()
-          imgData.append('file', this.file)
-        }
 
         const operation = this.$route.params.id ? 'EDIT_CORNERS' : 'CREATE_CORNER'
-        const data = await this.$store.dispatch(operation, [this.cornersData, imgData, this.imgIdToDelete])
-        console.log(data)
+        const data = await this.$store.dispatch(operation, this.cornersData)
+
         this.isLoadingBtn = false
-        // const cornerRespStatus = this.$store.getters.CORNER_RESP_STATUS
 
         this.isModalShown = true
-
-        // if(cornerRespStatus === 200){
-        //   this.$store.dispatch('GET_CORNERS_IMAGES', this.$route.params.id)
-        //   this.modalText = 'Данные успешно изменены'
-        // }else{
-        //   this.modalText = 'Произошла ошибка'
-        // }
 
         if(data.error){
             this.modalText = data.error
         }else{
           if(this.$route.params.id){
-            this.$store.dispatch('GET_CORNERS_IMAGES', this.$route.params.id)
             this.modalText = 'Данные успешно изменены'
           }else{
             this.modalText = 'Арендатор успешно создан'
@@ -267,21 +381,22 @@ export default {
             this.$router.push({name: 'editCorners', params: {id: data[0].data.id}})
           }
         }
-      }
+      // }
 
       setTimeout(() => {
         this.isModalShown = false
         this.modalText = ''
       }, 3000)
     },
-    removeLogo(){
-      this.file = null
-      this.imgUrl = null
-    },
-    addNewLogo(){
-      this.$refs.formFile.$refs.input.click()
 
-    }
+    async getCornerImages(){
+        const data = await this.$store.dispatch('GET_CORNERS_IMAGES', this.$route.params.id)
+
+        if (data.error) {
+          this.isModalShown = true
+          this.modalText = data.error
+        }
+    },
   },
 }
 </script>
@@ -329,35 +444,44 @@ h1{
         align-items: center;
     }
 }
-.image{
-  width: 250px;
-  height: 250px;
-  border: 1px solid #C4C4C4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  cursor: pointer;
 
-  img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.pc{
+  &-title{
+    font-weight: bold;
   }
-
-  &-wrapper{
+  &-name{
+    font-weight: 500;
+  }
+  &-row{
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    margin-bottom: 10px;
+    align-items: center;
+    justify-content: space-between;
   }
+  &-card{
+    width: 200px;
+    display: inline-block;
+    vertical-align: top;
+  }
+  &-img{
+    width: 100px;
+    height: 100px;
+    position: relative;
+    display: inline-block;
+    margin: 0 10px 10px 0;
 
-  &-action{
-    font-size: 14px;
-    cursor: pointer;
-    &:hover{
-      text-decoration: underline;
+    img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
   }
+  &-btn-close{
+    position: absolute;
+    top: -5px;
+    right: -5px;
+  }
+}
+.image-action{
+  cursor: pointer;
 }
 </style>

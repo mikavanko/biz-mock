@@ -31,24 +31,17 @@ export default class CornerService{
                 });
         }
     }
-    async editCorners(ctx, payload) {
-        let req = []
-        req[0] = axios.put(`/api/v1/corners/${payload[0].id}`,{...payload[0]})
-
-        if(payload[1]) {
-            req[1] = axios.post(`/api/v1/corners/${payload[0].id}/images`, payload[1], {
-                headers: {
-                    'accept': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.8',
-                    'Content-Type': `multipart/form-data; boundary=${payload[1]._boundary}`,
+    async createCorner(ctx, payload) {
+        return await axios.post(`/api/v1/corners`,{...payload})
+            .then(resp => resp.data)
+            .catch((error) => {
+                return {
+                    error: error
                 }
-            })
-        }
-        if(payload[2]) {
-            req[2] = axios.delete(`/api/v1/corners/${payload[0].id}/images/${payload[2]}`)
-        }
-
-        return axios.all(req)
+            });
+    }
+    async editCorners(ctx, payload) {
+        return await axios.put(`/api/v1/corners/${payload.id}`,{...payload})
             .then(resp => resp)
             .catch((error) => {
                 return {
@@ -56,26 +49,43 @@ export default class CornerService{
                 }
             });
     }
-    async createCorner(ctx, payload) {
-        let req = []
-        req[0] = axios.post(`/api/v1/corners`,{...payload[0]})
-
-        if(payload[1]) {
-            req[1] = axios.post(`/api/v1/corners/${payload[0].id}/images`, payload[1], {
+    async addCornerImage(ctx,{cornerId, formData, file}) {
+        return await axios.post(`/api/v1/corners/${cornerId}/images`, formData,{
                 headers: {
                     'accept': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.8',
-                    'Content-Type': `multipart/form-data; boundary=${payload[1]._boundary}`,
+                        'Accept-Language': 'en-US,en;q=0.8',
+                        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
                 }
             })
-        }
-        if(payload[2]) {
-            req[2] = axios.delete(`/api/v1/corners/${payload[0].id}/images/${payload[2]}`)
-        }
+            .then(resp => {
+                const imgArr = ctx.getters.CORNERS_IMAGES
+                imgArr.push(file)
+                console.log(file,formData)
 
-        return axios.all(req)
-            .then(resp => resp)
+                ctx.commit('SET_CORNERS_IMAGES', imgArr)
+
+                return resp.data
+            })
             .catch((error) => {
+                console.log('error',error)
+                return {
+                    error: error
+                }
+            });
+    }
+    async removeCornerImage(ctx,{cornerId, imgIdToDelete}) {
+        return await axios.delete(`/api/v1/corners/${cornerId}/images/${imgIdToDelete}`)
+            .then(resp => {
+                const imgArr = ctx.getters.CORNERS_IMAGES
+                const idx = imgArr.findIndex(item=>item.id === imgIdToDelete)
+                imgArr.splice(idx, 1)
+
+                ctx.commit('SET_CORNERS_IMAGES', imgArr)
+
+                return resp.data
+            })
+            .catch((error) => {
+                console.log('error',error)
                 return {
                     error: error
                 }
@@ -91,12 +101,16 @@ export default class CornerService{
             });
     }
     async getCornersImages(ctx,payload) {
-        axios({url: `/api/v1/corners/${payload}/images`, method: 'get'})
+        return await axios({url: `/api/v1/corners/${payload}/images`, method: 'get'})
             .then(resp => {
                 ctx.commit('SET_CORNERS_IMAGES', resp.data)
+
+                return resp.data
             })
             .catch((error) => {
-                console.log('error ' + error)
+                return {
+                    error: error
+                }
             });
     }
 }
